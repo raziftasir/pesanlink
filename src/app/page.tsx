@@ -30,7 +30,7 @@ export default function Home() {
   return (
     <div className="min-h-[60vh] grid place-items-center text-center">
       <div className="max-w-md w-full">
-        <h1 className="text-4xl font-bold mb-2">PesanLink</h1>
+        <h1 className="text-4xl font-bold mb-2">PesanLink 🚀</h1>
         <p className="opacity-80 mb-6">Turn WhatsApp into a storefront</p>
 
         <form onSubmit={onSignIn} className="space-y-3">
