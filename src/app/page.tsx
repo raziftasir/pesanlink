@@ -9,9 +9,12 @@ export default function Home() {
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  async function onSignIn(e: React.FormEvent) {
+  async function onSignIn(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setLoading(true); setOk(null); setErr(null);
+    setLoading(true);
+    setOk(null);
+    setErr(null);
+
     try {
       const supabase = supabaseBrowser();
       const { error } = await supabase.auth.signInWithOtp({
@@ -20,8 +23,8 @@ export default function Home() {
       });
       if (error) throw error;
       setOk('Check your email for the login link.');
-    } catch (e: any) {
-      setErr(e.message || 'Failed to send magic link');
+    } catch (err: unknown) {
+      setErr(err instanceof Error ? err.message : 'Failed to send magic link');
     } finally {
       setLoading(false);
     }
@@ -39,7 +42,9 @@ export default function Home() {
             required
             placeholder="you@email.com"
             value={email}
-            onChange={(e)=>setEmail(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setEmail(e.target.value)
+            }
             className="w-full px-3 py-2 rounded-lg bg-transparent border"
           />
           <button disabled={loading} className="w-full px-4 py-2 rounded-lg border">
