@@ -14,7 +14,7 @@ export default function AuthCallback() {
 
     async function run() {
       try {
-        // New flow: ?code=...
+        // 1) New flow: ?code=...
         const code = search.get('code');
         if (code) {
           const { error } = await supabase.auth.exchangeCodeForSession(code);
@@ -23,7 +23,7 @@ export default function AuthCallback() {
           return;
         }
 
-        // Old flow: #access_token=...&refresh_token=...
+        // 2) Old flow: #access_token=...&refresh_token=...
         const hash = window.location.hash.startsWith('#')
           ? window.location.hash.slice(1)
           : '';
