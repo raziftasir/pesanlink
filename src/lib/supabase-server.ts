@@ -2,18 +2,24 @@ import { cookies } from 'next/headers';
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 
 export const supabaseServer = () => {
-  const cookieStore = cookies();
+  const cookieStorePromise = cookies(); // Next.js 15 returns a Promise
+
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) { return cookieStore.get(name)?.value; },
-        set(name: string, value: string, options: CookieOptions) {
-          cookieStore.set({ name, value, ...options });
+        async get(name: string) {
+          const store = await cookieStorePromise;
+          return store.get(name)?.value;
         },
-        remove(name: string, options: CookieOptions) {
-          cookieStore.set({ name, value: '', ...options });
+        async set(name: string, value: string, options: CookieOptions) {
+          const store = await cookieStorePromise;
+          store.set({ name, value, ...options });
+        },
+        async remove(name: string, options: CookieOptions) {
+          const store = await cookieStorePromise;
+          store.set({ name, value: '', ...options });
         },
       },
     }
