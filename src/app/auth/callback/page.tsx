@@ -14,7 +14,7 @@ export default function AuthCallback() {
 
     async function run() {
       try {
-        // 1) New flow: ?code=...
+        // New flow: ?code=...
         const code = search.get('code');
         if (code) {
           const { error } = await supabase.auth.exchangeCodeForSession(code);
@@ -23,7 +23,7 @@ export default function AuthCallback() {
           return;
         }
 
-        // 2) Old flow: #access_token=...&refresh_token=...
+        // Old flow: #access_token=...&refresh_token=...
         const hash = window.location.hash.startsWith('#')
           ? window.location.hash.slice(1)
           : '';
@@ -41,18 +41,14 @@ export default function AuthCallback() {
           return;
         }
 
-        // If we got here, we didn’t receive anything useful
         setMsg('Missing auth parameters. Please request a new link.');
       } catch (err) {
-        const m =
-          err instanceof Error ? err.message : 'Unable to complete sign-in.';
-        setMsg(m);
+        setMsg(err instanceof Error ? err.message : 'Unable to complete sign-in.');
       }
     }
 
     run();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [router, search]);
 
   return (
     <div className="min-h-[60vh] grid place-items-center text-center">
