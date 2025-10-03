@@ -1,60 +1,58 @@
-'use client';
+import SignInForm from "@/components/sign-in-password";
+import { cookies } from "next/headers";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
 
-import { useState } from 'react';
-import { supabaseBrowser } from '@/lib/supabase-browser';
+export const revalidate = 0; // always fresh in dev
 
-export default function Home() {
-  const [email, setEmail] = useState('');
-  const [ok, setOk] = useState<string | null>(null);
-  const [err, setErr] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  async function onSignIn(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setLoading(true);
-    setOk(null);
-    setErr(null);
-
-    try {
-      const supabase = supabaseBrowser();
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
-      });
-      if (error) throw error;
-      setOk('Check your email for the login link.');
-    } catch (err: unknown) {
-      setErr(err instanceof Error ? err.message : 'Failed to send magic link');
-    } finally {
-      setLoading(false);
+export default async function Page() {
+  // Server-aware Supabase client (no awaiting cookies())
+  const cookieStore = cookies();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value;
+        },
+        set(_name: string, _value: string, _options: CookieOptions) {
+          /* no-op in Server Component */
+        },
+        remove(_name: string, _options: CookieOptions) {
+          /* no-op in Server Component */
+        },
+      },
     }
-  }
+  );
+
+  const { data } = await supabase.auth.getUser();
+  const user = data.user;
 
   return (
-    <div className="min-h-[60vh] grid place-items-center text-center">
-      <div className="max-w-md w-full">
-        <h1 className="text-4xl font-bold mb-2">PesanLink 🚀</h1>
-        <p className="opacity-80 mb-6">Turn WhatsApp into a storefront</p>
+    <main className="min-h-[70vh] grid place-items-center text-center">
+      {user ? (
+        <div className="flex flex-col items-center gap-4">
+          <h1 className="text-2xl font-semibold">PesanLink 🚀</h1>
+          <p className="opacity-70">Signed in as {user.email}</p>
 
-        <form onSubmit={onSignIn} className="space-y-3">
-          <input
-            type="email"
-            required
-            placeholder="you@email.com"
-            value={email}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setEmail(e.target.value)
-            }
-            className="w-full px-3 py-2 rounded-lg bg-transparent border"
-          />
-          <button disabled={loading} className="w-full px-4 py-2 rounded-lg border">
-            {loading ? 'Sending…' : 'Sign in with Email Link'}
-          </button>
-        </form>
+          {/* posts to your existing /auth/signout route */}
+          <form action="/auth/signout" method="post">
+            <button className="rounded border border-white/40 px-3 py-2">Sign out</button>
+          </form>
 
-        {ok && <p className="mt-3 text-green-400">{ok}</p>}
-        {err && <p className="mt-3 text-red-400">{err}</p>}
-      </div>
-    </div>
+          <a href="/dashboard" className="underline">Go to dashboard →</a>
+        </div>
+      ) : (
+        <div className="flex flex-col items-center gap-6">
+          <div>
+            <h1 className="text-2xl font-semibold">PesanLink 🚀</h1>
+            <p className="opacity-70 mt-2">Turn WhatsApp into a storefront</p>
+          </div>
+
+          {/* Password sign-in form (client component) */}
+          <SignInForm />
+        </div>
+      )}
+    </main>
   );
 }

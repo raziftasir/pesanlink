@@ -1,8 +1,9 @@
-import { cookies } from 'next/headers';
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { cookies } from "next/headers";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
 
 export const supabaseServer = () => {
-  const cookieStorePromise = cookies(); // Next.js 15 returns a Promise
+  // In Next 15 this is a *Promise*
+  const cookieStorePromise = cookies();
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -19,7 +20,7 @@ export const supabaseServer = () => {
         },
         async remove(name: string, options: CookieOptions) {
           const store = await cookieStorePromise;
-          store.set({ name, value: '', ...options });
+          store.set({ name, value: "", ...options });
         },
       },
     }
